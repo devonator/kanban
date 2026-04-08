@@ -26,6 +26,7 @@ interface HookSnapshot {
 	modelId: string;
 	apiKey: string;
 	baseUrl: string;
+	currentTimeoutMs: number | null;
 	reasoningEffort: string;
 	providerCatalogIds: string[];
 	providerModelIds: string[];
@@ -75,6 +76,7 @@ function createRuntimeConfigResponse(
 			providerId: "cline",
 			modelId: "claude-sonnet-4-6",
 			baseUrl: null,
+			timeoutMs: null,
 			reasoningEffort: null,
 			apiKeyConfigured: false,
 			oauthProvider: "cline",
@@ -134,6 +136,7 @@ function HookHarness({
 			modelId: state.modelId,
 			apiKey: state.apiKey,
 			baseUrl: state.baseUrl,
+			currentTimeoutMs: state.currentProviderSettings.timeoutMs ?? null,
 			reasoningEffort: state.reasoningEffort,
 			providerCatalogIds: state.providerCatalog.map((provider) => provider.id),
 			providerModelIds: state.providerModels.map((model) => model.id),
@@ -566,6 +569,7 @@ describe("useRuntimeSettingsClineController", () => {
 			providerId: "my-provider",
 			modelId: "qwen2.5-coder:32b",
 			baseUrl: "http://localhost:8000/v1",
+			timeoutMs: 45_000,
 			reasoningEffort: null,
 			apiKeyConfigured: true,
 			oauthProvider: null,
@@ -624,6 +628,7 @@ describe("useRuntimeSettingsClineController", () => {
 		expect(requireSnapshot(latestSnapshot).providerId).toBe("my-provider");
 		expect(requireSnapshot(latestSnapshot).modelId).toBe("qwen2.5-coder:32b");
 		expect(requireSnapshot(latestSnapshot).baseUrl).toBe("http://localhost:8000/v1");
+		expect(requireSnapshot(latestSnapshot).currentTimeoutMs).toBe(45_000);
 		expect(requireSnapshot(latestSnapshot).apiKeyConfigured).toBe(true);
 		expect(requireSnapshot(latestSnapshot).providerCatalogIds).toEqual(["cline", "my-provider"]);
 		expect(requireSnapshot(latestSnapshot).providerModelIds).toEqual(["qwen2.5-coder:32b"]);

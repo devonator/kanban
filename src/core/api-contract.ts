@@ -514,6 +514,7 @@ export const runtimeClineProviderSettingsSchema = z.object({
 	providerId: z.string().nullable(),
 	modelId: z.string().nullable(),
 	baseUrl: z.string().nullable(),
+	timeoutMs: z.number().int().positive().nullable().optional(),
 	reasoningEffort: runtimeClineReasoningEffortSchema.nullable().optional(),
 	apiKeyConfigured: z.boolean(),
 	oauthProvider: runtimeClineOauthProviderSchema.nullable(),

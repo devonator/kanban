@@ -128,9 +128,11 @@ export function ClineSetupSection({
 			baseUrl: controller.baseUrl.trim() || selectedProvider?.baseUrl?.trim() || "",
 			models: normalizedModelIds,
 			defaultModelId: controller.modelId.trim() || selectedProvider?.defaultModelId?.trim() || "",
+			timeoutMs: controller.currentProviderSettings.timeoutMs,
 		};
 	}, [
 		canEditSelectedProvider,
+		controller.currentProviderSettings.timeoutMs,
 		controller.baseUrl,
 		controller.modelId,
 		controller.providerId,
