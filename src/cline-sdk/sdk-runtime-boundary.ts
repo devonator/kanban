@@ -3,15 +3,17 @@
 // flow through this boundary so the rest of Kanban stays decoupled from the
 // SDK package layout.
 
+import { Agent, type AgentConfig } from "@clinebot/agents";
 import {
 	buildWorkspaceMetadata,
 	type LlmsProviders as ClineSdkProviders,
-	createSessionHost,
 	createUserInstructionConfigWatcher,
+	DefaultSessionManager,
 	getClineDefaultSystemPrompt,
 	listAvailableRuntimeCommandsFromWatcher,
 	loadRulesForSystemPromptFromWatcher,
 	resolveRuntimeSlashCommandFromWatcher,
+	resolveSessionBackend,
 	type SessionHost,
 	type StartSessionInput,
 	type ToolApprovalRequest,
@@ -205,10 +207,24 @@ export type ClineSdkToolApprovalRequest = ToolApprovalRequest;
 export type ClineSdkToolApprovalResult = ToolApprovalResult;
 
 export async function createClineSdkSessionHost(): Promise<ClineSdkSessionHost> {
-	return await createSessionHost({
+	const backend = await resolveSessionBackend({
 		backendMode: "auto",
 		rpc: { autoStart: true },
+	});
+	return new DefaultSessionManager({
+		sessionService: backend,
 		telemetry: getCliTelemetryService(),
+		createAgent: (config: AgentConfig) => {
+			const rawTimeout = config.apiTimeoutMs ?? config.providerConfig?.timeoutMs;
+			// Node.js clamps setTimeout delays larger than 2^31-1 (2 147 483 647) down to 1 ms,
+			// so passing a value like 4 294 967 295 ("max uint32") causes the abort signal to
+			// fire almost immediately instead of after ~49 days as the number suggests.
+			// Clamp to the Node.js max-safe timer value so sentinel "unlimited" values work.
+			const MAX_NODEJS_TIMER_MS = 2_147_483_647; // 2^31 - 1 (~24.8 days)
+			const apiTimeoutMs =
+				typeof rawTimeout === "number" && rawTimeout > 0 ? Math.min(rawTimeout, MAX_NODEJS_TIMER_MS) : undefined;
+			return new Agent({ ...config, apiTimeoutMs });
+		},
 	});
 }
 
